@@ -1,0 +1,25 @@
+{
+  "name": "nodejs-project",
+  "version": "1.0.0",
+  "main": "DB.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amrmuhamedd98/Node-JS-Project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amrmuhamedd98/Node-JS-Project/issues"
+  },
+  "homepage": "https://github.com/amrmuhamedd98/Node-JS-Project#readme",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.2"
+  }
+}
