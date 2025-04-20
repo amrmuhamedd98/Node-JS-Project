@@ -3,4 +3,4 @@ function asyncWrapper(fun) {
     fun(req, res, next).catch(next);
   };
 }
-module.exports = { asyncWrapper };
+module.exports = asyncWrapper;
