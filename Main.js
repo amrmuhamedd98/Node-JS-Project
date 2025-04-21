@@ -8,21 +8,27 @@ const cors = require("cors");
 const userRoute = require("./Routes/UserRoute");
 const bookRoute = require("./Routes/BookRoute");
 const wishlistRoute = require("./Routes/WishlistRoute");
+const achievementRoute = require("./Routes/AchievementRoute");
+const favoriteRoute = require("./Routes/FavoriteRoute");
+const memorizationRoute = require("./Routes/MemorizationRoute");
 const { ApiError } = require("./Utils/ApiError");
 
-//Middlewares
+// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.static("Public"));
 app.use("/Uploads", express.static("Uploads"));
 
-//Route Middlewares
+// Route Middlewares
 app.use("/user", userRoute);
 app.use("/book", bookRoute);
 app.use("/wishlist", wishlistRoute);
+app.use("/achievement", achievementRoute);
+app.use("/favorite", favoriteRoute);
+app.use("/memorization", memorizationRoute);
 
-//Handel Error Middleware
+// Handle Error Middleware
 app.use((err, req, res, next) => {
   if (err instanceof ApiError) {
     res.status(err.status).json(err.message);
