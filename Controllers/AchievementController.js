@@ -5,23 +5,32 @@ async function getAchievements(req, res) {
     const achievements = await Achievement.find({
       user: req.user.id,
       isDeleted: false,
-    }).sort("-dateEarned");
+    }).sort("-createdAt");
 
     res.status(200).json({ success: true, data: achievements });
   } catch (err) {
-    res.status(500).json({ success: false, error: "Server error" });
+    console.error("Error fetching achievements:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch achievements" });
   }
 }
 
 async function createAchievement(req, res) {
   try {
-    const achievement = await Achievement.create({
-      ...req.body,
+    const achievementData = {
+      achievementName: req.body.achievementName,
+      description: req.body.description,
+      iconUrl: req.body.iconUrl,
+      points: req.body.points,
+      level: req.body.level,
+      book: req.body.book,
       user: req.user.id,
-    });
+    };
+
+    const achievement = await Achievement.create(achievementData);
     res.status(201).json({ success: true, data: achievement });
   } catch (err) {
-    res.status(400).json({ success: false, error: "Invalid achievement data" });
+    console.error("Error creating achievement:", err);
+    res.status(400).json({ success: false, error: err.message || "Invalid achievement data" });
   }
 }
 
@@ -34,14 +43,16 @@ async function updateAchievement(req, res) {
     );
 
     if (!achievement) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Achievement not found" });
+      return res.status(404).json({ success: false, error: "Achievement not found" });
     }
 
     res.status(200).json({ success: true, data: achievement });
   } catch (err) {
-    res.status(400).json({ success: false, error: "Update failed" });
+    console.error("Error updating achievement:", err);
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+    res.status(500).json({ success: false, error: "Failed to update achievement" });
   }
 }
 
@@ -54,14 +65,13 @@ async function deleteAchievement(req, res) {
     );
 
     if (!achievement) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Achievement not found" });
+      return res.status(404).json({ success: false, error: "Achievement not found" });
     }
 
-    res.status(200).json({ success: true, data: {} });
+    res.status(200).json({ success: true, data: achievement }); 
   } catch (err) {
-    res.status(500).json({ success: false, error: "Server error" });
+    console.error("Error deleting achievement:", err);
+    res.status(500).json({ success: false, error: "Failed to delete achievement" });
   }
 }
 
