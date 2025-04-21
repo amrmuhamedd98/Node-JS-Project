@@ -1,7 +1,8 @@
 const user = require("../Models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { json } = require("express");
+require("dotenv").config();
+const tokenKey = process.env.tokenKey;
 
 // Register
 async function Register(req, res) {
@@ -16,7 +17,6 @@ async function Register(req, res) {
       UserName,
       Password: hashedPassword,
       PhoneNumber,
-      
     });
     return res.status(200).json({
       Message: "User was registered successfully",
@@ -40,7 +40,7 @@ async function Login(req, res) {
           Message: "Invalid Password or User Name",
         });
       } else if (result == true) {
-        let token = jwt.sign({ UserName }, "p@jgla2mbs1TokenKeylai3e&rq");
+        let token = jwt.sign({ UserName, Role: findByUserName.Role }, tokenKey);
         return res.status(200).json({
           Message: "Logged in successfully",
           Token: token,
@@ -189,6 +189,33 @@ async function SearchUsers(req, res) {
   });
 }
 
+// Change User Photo
+async function ChangePhoto(req, res) {
+  let { userId } = req.params;
+  if (!userId) {
+    return res.status(400).json({
+      Message: "userId is required",
+    });
+  }
+  const currentUser = await user.findById(userId);
+  if (!currentUser) {
+    return res.status(404).json({
+      Message: "User not found",
+    });
+  } else {
+    if (!req.file) {
+      return res.status(400).json({
+        Message: "ImgUrl is required",
+      });
+    }
+    const filePath = req.file.path;
+    await user.updateOne({ _id: userId }, { $set: { ImgUrl: filePath } });
+    return res.status(200).json({
+      Message: "User photo updated successfully",
+    });
+  }
+}
+
 // Change User Password
 async function ChangePassword(req, res) {
   let { userId } = req.params;
@@ -235,5 +262,6 @@ module.exports = {
   DeleteUser,
   AssignRole,
   SearchUsers,
+  ChangePhoto,
   ChangePassword,
 };

@@ -28,6 +28,10 @@ const userSchema = mongoose.Schema(
       type: String,
       required: false,
     },
+    ImgUrl: {
+      type: String,
+      required: false,
+    },
     Role: {
       type: String,
       enum: ["Admin", "User", "Guest"],

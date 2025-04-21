@@ -12,13 +12,10 @@ const wishlistSchema = mongoose.Schema(
       default: Date.now,
       required: true,
     },
-    Count: {
-      type: Number,
-      required: true,
-    },
     IsDeleted: {
       type: Boolean,
       required: false,
+      default: false,
     },
     UserId: {
       type: Schema.Types.ObjectId,
