@@ -2,6 +2,7 @@ const express = require("express");
 const route = express.Router();
 const bookController = require("../Controllers/BookController");
 const asyncWrapper = require("../utils/HandelErr");
+const isAuthorize = require("../Middlewares/Authorization");
 
 // Add Book
 route.post("/add", asyncWrapper(bookController.AddBook));

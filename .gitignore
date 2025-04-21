@@ -15,8 +15,8 @@ tmp/
 temp/
 
 # dotenv files
-.env
-.env.*.local
+# .env
+# .env.*.local
 
 # OS-specific files
 .DS_Store
