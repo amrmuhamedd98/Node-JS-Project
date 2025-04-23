@@ -5,20 +5,45 @@ const asyncWrapper = require("../utils/HandelErr");
 const isAuthorize = require("../Middlewares/Authorization");
 
 // Add Book
-route.post("/add", asyncWrapper(bookController.AddBook));
+route.post(
+  "/add",
+  isAuthorize(["Admin"]),
+  asyncWrapper(bookController.AddBook)
+);
 // Edit Book
-route.put("/edit/:bookId", asyncWrapper(bookController.EditBook));
+route.put(
+  "/edit/:bookId",
+  isAuthorize(["Admin"]),
+  asyncWrapper(bookController.EditBook)
+);
 // Delete Book (soft delete)
-route.delete("/delete/:bookId", asyncWrapper(bookController.DeleteBook));
+route.delete(
+  "/delete/:bookId",
+  isAuthorize(["Admin"]),
+  asyncWrapper(bookController.DeleteBook)
+);
 // Get All Books
-route.get("/get-all", asyncWrapper(bookController.GetAllBooks));
+route.get(
+  "/get-all",
+  isAuthorize(["Admin"]),
+  asyncWrapper(bookController.GetAllBooks)
+);
 // Get Book By Id
-route.get("/get-book/:bookId", asyncWrapper(bookController.GetBookById));
+route.get(
+  "/get-book/:bookId",
+  isAuthorize(["Admin", "User"]),
+  asyncWrapper(bookController.GetBookById)
+);
 // Search Books
-route.get("/search", asyncWrapper(bookController.SearchBooks));
+route.get(
+  "/search",
+  isAuthorize(["Admin", "User"]),
+  asyncWrapper(bookController.SearchBooks)
+);
 // Filter Books By Category
 route.get(
   "/filter/:category",
+  isAuthorize(["Admin", "User"]),
   asyncWrapper(bookController.FilterBooksByCategory)
 );
 

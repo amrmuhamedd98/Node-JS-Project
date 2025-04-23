@@ -11,7 +11,7 @@ const wishlistRoute = require("./Routes/WishlistRoute");
 const achievementRoute = require("./Routes/AchievementRoute");
 const favoriteRoute = require("./Routes/FavoriteRoute");
 const memorizationRoute = require("./Routes/MemorizationRoute");
-const { ApiError } = require("./Utils/ApiError");
+const ApiError = require("./Utils/ApiError");
 
 // Middlewares
 app.use(cors());
@@ -29,12 +29,13 @@ app.use("/favorite", favoriteRoute);
 app.use("/memorization", memorizationRoute);
 
 // Handle Error Middleware
+console.log(ApiError)
 app.use((err, req, res, next) => {
   if (err instanceof ApiError) {
-    res.status(err.status).json(err.message);
+    res.status(err.status).json({ Message: err.message });
   } else {
-    const error = new ApiError(err.message, 500);
-    res.status(error.status).json(err.message);
+    const error = new ApiError( err.message , 500);
+    res.status(error.status).json({ Message: err.message });
   }
 });
 

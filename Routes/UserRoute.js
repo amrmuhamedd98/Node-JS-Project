@@ -63,13 +63,14 @@ route.get(
 // Change User Photo
 route.put(
   "/change-photo/:userId",
+  isAuthorize(["Admin", "User"]),
   upload.single("ImgUrl"),
   asyncWrapper(userController.ChangePhoto)
 );
 // Change User Password
 route.put(
   "/change-password/:userId",
-  isAuthorize(["User", "Admin"]),
+  isAuthorize(["Admin", "User"]),
   asyncWrapper(userController.ChangePassword)
 );
 

@@ -1,11 +1,12 @@
 const user = require("../Models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const ApiError = require("../Utils/ApiError");
 require("dotenv").config();
 const tokenKey = process.env.tokenKey;
 
 // Register
-async function Register(req, res) {
+async function Register(req, res, next) {
   let { Name, Email, UserName, Password, PhoneNumber } = req.body;
   let findByUserName = await user.findOne({ UserName: UserName });
   let findEmail = await user.findOne({ Email: Email });
@@ -22,23 +23,20 @@ async function Register(req, res) {
       Message: "User was registered successfully",
     });
   } else {
-    return res.status(409).json({
-      Message: "UserName or Email already exists",
-    });
+    const error = new ApiError("UserName or Email already exists", 409);
+    return next(error);
   }
 }
 
 // Login
-async function Login(req, res) {
+async function Login(req, res, next) {
   let { UserName, Password } = req.body;
   let findByUserName = await user.findOne({ UserName: UserName });
   if (findByUserName) {
     bcrypt.compare(Password, findByUserName.Password, function (error, result) {
       if (error) {
-        console.log(error.message);
-        return res.status(403).json({
-          Message: "Invalid Password or User Name",
-        });
+        const error = new ApiError("Invalid Password or User Name", 403);
+        return next(error);
       } else if (result == true) {
         let token = jwt.sign({ UserName, Role: findByUserName.Role }, tokenKey);
         return res.status(200).json({
@@ -48,14 +46,13 @@ async function Login(req, res) {
       }
     });
   } else {
-    return res.status(403).json({
-      Message: "Invalid Password or User Name",
-    });
+    const error = new ApiError("Invalid Password or User Name", 403);
+    return next(error);
   }
 }
 
 // Get All Users
-async function GetAllUsers(req, res) {
+async function GetAllUsers(req, res, next) {
   let allUsers = await user.aggregate([
     {
       $project: {
@@ -74,14 +71,13 @@ async function GetAllUsers(req, res) {
       Data: allUsers,
     });
   } else {
-    return res.status(404).json({
-      Message: "No users found",
-    });
+    const error = new ApiError("No users found", 404);
+    return next(error);
   }
 }
 
 // Get User By ID
-async function GetUserById(req, res) {
+async function GetUserById(req, res, next) {
   let { userId } = req.params;
   const foundUser = await user.findById(userId);
   if (foundUser && foundUser.IsDeleted == false) {
@@ -90,20 +86,18 @@ async function GetUserById(req, res) {
       Data: foundUser,
     });
   } else {
-    return res.status(404).json({
-      Message: "User not found",
-    });
+    const error = new ApiError("User not found", 404);
+    return next(error);
   }
 }
 
 // Edit User
-async function EditUser(req, res) {
+async function EditUser(req, res, next) {
   let { userId } = req.params;
   const existUser = await user.findById(userId);
   if (!existUser) {
-    return res.status(404).json({
-      Message: "User not found",
-    });
+    const error = new ApiError("User not found", 404);
+    return next(error);
   }
   let updatedUser = await user.updateOne({ _id: userId }, { $set: req.body });
   if (updatedUser.modifiedCount === 1) {
@@ -111,20 +105,18 @@ async function EditUser(req, res) {
       Message: "Updated user successfully",
     });
   } else {
-    return res.status(404).json({
-      Message: "No changes were made to the user",
-    });
+    const error = new ApiError("No changes were made to the user", 404);
+    return next(error);
   }
 }
 
 // Delete User
-async function DeleteUser(req, res) {
+async function DeleteUser(req, res, next) {
   let { userId } = req.params;
   const existUser = await user.findById(userId);
   if (!existUser || existUser.IsDeleted) {
-    return res.status(404).json({
-      Message: "User not found or already deleted",
-    });
+    const error = new ApiError("User not found or already deleted", 404);
+    return next(error);
   }
   let deletedUser = await user.updateOne(
     { _id: userId },
@@ -135,25 +127,22 @@ async function DeleteUser(req, res) {
       Message: "User marked as deleted successfully",
     });
   } else {
-    return res.status(404).json({
-      Message: "No changes were made to the user",
-    });
+    const error = new ApiError("No changes were made to the user", 404);
+    return next(error);
   }
 }
 // Assign Role to User
-async function AssignRole(req, res) {
+async function AssignRole(req, res, next) {
   const { userId } = req.params;
   const { Role } = req.body;
   const existUser = await user.findById(userId);
   if (!existUser || existUser.IsDeleted) {
-    return res.status(404).json({
-      Message: "User not found or already deleted",
-    });
+    const error = new ApiError("User not found or already deleted", 404);
+    return next(error);
   }
   if (!Role) {
-    return res.status(400).json({
-      Message: "Role is required",
-    });
+    const error = new ApiError("Role is required", 400);
+    return next(error);
   }
   const updated = await user.updateOne({ _id: userId }, { $set: { Role } });
   if (updated.modifiedCount === 1) {
@@ -161,19 +150,17 @@ async function AssignRole(req, res) {
       Message: "Assign role successfully",
     });
   } else {
-    return res.status(400).json({
-      Message: "Failed to assign role",
-    });
+    const error = new ApiError("Failed to assign role", 400);
+    return next(error);
   }
 }
 
 // Search Users
-async function SearchUsers(req, res) {
+async function SearchUsers(req, res, next) {
   const { keyword } = req.query;
   if (!keyword || keyword.trim() === "") {
-    return res.status(400).json({
-      Message: "Search keyword is required",
-    });
+    const error = new ApiError("Search keyword is required", 400);
+    return next(error);
   }
   const users = await user.find({
     IsDeleted: { $ne: true },
@@ -190,23 +177,20 @@ async function SearchUsers(req, res) {
 }
 
 // Change User Photo
-async function ChangePhoto(req, res) {
+async function ChangePhoto(req, res, next) {
   let { userId } = req.params;
   if (!userId) {
-    return res.status(400).json({
-      Message: "userId is required",
-    });
+    const error = new ApiError("User Id is required", 400);
+    return next(error);
   }
   const currentUser = await user.findById(userId);
   if (!currentUser) {
-    return res.status(404).json({
-      Message: "User not found",
-    });
+    const error = new ApiError("User not found", 404);
+    return next(error);
   } else {
     if (!req.file) {
-      return res.status(400).json({
-        Message: "ImgUrl is required",
-      });
+      const error = new ApiError("ImgUrl is required", 400);
+      return next(error);
     }
     const filePath = req.file.path;
     await user.updateOne({ _id: userId }, { $set: { ImgUrl: filePath } });
@@ -217,30 +201,26 @@ async function ChangePhoto(req, res) {
 }
 
 // Change User Password
-async function ChangePassword(req, res) {
+async function ChangePassword(req, res, next) {
   let { userId } = req.params;
   const { oldPassword, newPassword } = req.body;
   const currentUser = await user.findById(userId);
   if (!currentUser) {
-    return res.status(404).json({
-      Message: "User not found",
-    });
+    const error = new ApiError("User not found", 404);
+    return next(error);
   }
   if (!oldPassword || !newPassword) {
-    return res.status(400).json({
-      Message: "Old and new passwords are required",
-    });
+    const error = new ApiError("Old and new passwords are required", 400);
+    return next(error);
   }
   if (oldPassword === newPassword) {
-    return res.status(400).json({
-      Message: "New password must be different from the old one",
-    });
+    const error = new ApiError("New password must be different from the old one", 400);
+    return next(error);
   }
   const isMatch = await bcrypt.compare(oldPassword, currentUser.Password);
   if (!isMatch) {
-    return res.status(403).json({
-      Message: "Old password is incorrect",
-    });
+    const error = new ApiError("Old password is incorrect", 403);
+    return next(error);
   } else {
     const hashedPassword = await bcrypt.hash(newPassword, 5);
     await user.updateOne(

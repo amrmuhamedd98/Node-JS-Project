@@ -1,7 +1,8 @@
 const wishlist = require("../Models/Wishlist");
+const ApiError = require("../Utils/ApiError");
 
 // Add To Wishlist
-async function AddToWishlist(req, res) {
+async function AddToWishlist(req, res, next) {
   let { bookId, userId, priority } = req.body;
   const isExist = await wishlist.findOne({
     BookId: bookId,
@@ -18,9 +19,8 @@ async function AddToWishlist(req, res) {
       Message: "Book added to wishlist successfully",
     });
   } else {
-    return res.status(409).json({
-      Message: "Book already in wishlist",
-    });
+    const error = new ApiError("Book already in wishlist", 409);
+    return next(error);
   }
 }
 
@@ -38,19 +38,17 @@ async function RemoveFromWishlist(req, res) {
       Message: "Book removed from wishlist successfully",
     });
   } else {
-    return res.status(200).json({
-      Message: "Book is not found in wishlist",
-    });
+    const error = new ApiError("Book is not found in wishlist", 404);
+    return next(error);
   }
 }
 
 // Clear wishlist
-async function ClearWishlist(req, res) {
+async function ClearWishlist(req, res, next) {
   let { userId } = req.params;
   if (!userId) {
-    return res.status(400).json({
-      Message: "userId is required",
-    });
+    const error = new ApiError("User Id is required", 400);
+    return next(error);
   } else {
     const userWishlist = await wishlist.find({ UserId: userId });
     if (userWishlist && userWishlist.length > 0) {
@@ -59,15 +57,14 @@ async function ClearWishlist(req, res) {
         Message: "Wishlist cleared successfully",
       });
     } else {
-      return res.status(404).json({
-        Message: "No wishlist items found for this user",
-      });
+      const error = new ApiError("No wishlist items found for this user", 404);
+      return next(error);
     }
   }
 }
 
 // Get Wishlist By User
-async function GetWishlistByUser(req, res) {
+async function GetWishlistByUser(req, res, next) {
   let { userId } = req.params;
   const userWishlist = await wishlist.find({ UserId: userId });
   if (userWishlist && userWishlist.length > 0) {
@@ -76,9 +73,8 @@ async function GetWishlistByUser(req, res) {
       Data: wishlist,
     });
   } else {
-    return res.status(404).json({
-      Message: "Wishlist is empty or not found",
-    });
+    const error = new ApiError("Wishlist is empty or not found", 404);
+    return next(error);
   }
 }
 
