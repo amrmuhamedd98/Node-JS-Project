@@ -1,6 +1,7 @@
 const Achievement = require("../Models/Achievement");
+const ApiError = require("../Utils/ApiError");
 
-async function getAchievements(req, res) {
+async function getAchievements(req, res, next) {
   try {
     const achievements = await Achievement.find({
       user: req.user.id,
@@ -10,11 +11,12 @@ async function getAchievements(req, res) {
     res.status(200).json({ success: true, data: achievements });
   } catch (err) {
     console.error("Error fetching achievements:", err);
-    res.status(500).json({ success: false, error: "Failed to fetch achievements" });
+    const error = new ApiError("Failed to fetch achievements", 500);
+    return next(error);
   }
 }
 
-async function createAchievement(req, res) {
+async function createAchievement(req, res, next) {
   try {
     const achievementData = {
       achievementName: req.body.achievementName,
@@ -30,11 +32,12 @@ async function createAchievement(req, res) {
     res.status(201).json({ success: true, data: achievement });
   } catch (err) {
     console.error("Error creating achievement:", err);
-    res.status(400).json({ success: false, error: err.message || "Invalid achievement data" });
+    const error = new ApiError(err.message || "Invalid achievement data", 400);
+    return next(error);
   }
 }
 
-async function updateAchievement(req, res) {
+async function updateAchievement(req, res, next) {
   try {
     const achievement = await Achievement.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
@@ -43,20 +46,23 @@ async function updateAchievement(req, res) {
     );
 
     if (!achievement) {
-      return res.status(404).json({ success: false, error: "Achievement not found" });
+      const error = new ApiError("Achievement not found", 404);
+      return next(error);
     }
 
     res.status(200).json({ success: true, data: achievement });
   } catch (err) {
     console.error("Error updating achievement:", err);
     if (err.name === "ValidationError") {
-      return res.status(400).json({ success: false, error: err.message });
+      const error = new ApiError(err.message, 400);
+      return next(error);
     }
-    res.status(500).json({ success: false, error: "Failed to update achievement" });
+    const error = new ApiError("Failed to update achievement", 500);
+    return next(error);
   }
 }
 
-async function deleteAchievement(req, res) {
+async function deleteAchievement(req, res, next) {
   try {
     const achievement = await Achievement.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
@@ -65,13 +71,15 @@ async function deleteAchievement(req, res) {
     );
 
     if (!achievement) {
-      return res.status(404).json({ success: false, error: "Achievement not found" });
+      const error = new ApiError("Achievement not found", 404);
+      return next(error);
     }
 
-    res.status(200).json({ success: true, data: achievement }); 
+    res.status(200).json({ success: true, data: achievement });
   } catch (err) {
     console.error("Error deleting achievement:", err);
-    res.status(500).json({ success: false, error: "Failed to delete achievement" });
+    const error = new ApiError("Failed to delete achievement", 500);
+    return next(error);
   }
 }
 

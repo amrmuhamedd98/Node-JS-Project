@@ -27,51 +27,69 @@ route.post("/login", asyncWrapper(userController.Login));
 // Get All Users
 route.get(
   "/get-all",
-  isAuthorize("Admin"),
+  isAuthorize(["admin"]),
   asyncWrapper(userController.GetAllUsers)
 );
 // Get User By ID
 route.get(
   "/get-user/:userId",
-  isAuthorize("Admin"),
+  isAuthorize(["admin"]),
   asyncWrapper(userController.GetUserById)
 );
 // Edit User
 route.put(
   "/edit/:userId",
-  isAuthorize(["Admin"]),
+  isAuthorize(["admin"]),
   asyncWrapper(userController.EditUser)
 );
 // Delete User (soft delete)
 route.delete(
   "/delete/:userId",
-  isAuthorize(["Admin"]),
+  isAuthorize(["admin"]),
   asyncWrapper(userController.DeleteUser)
 );
 // Assign Role to User
 route.post(
   "/add-role/:userId",
-  isAuthorize(["Admin"]),
+  isAuthorize(["admin"]),
   asyncWrapper(userController.AssignRole)
 );
 // Search Users
 route.get(
   "/search",
-  isAuthorize(["Admin"]),
+  isAuthorize(["admin"]),
   asyncWrapper(userController.SearchUsers)
 );
 // Change User Photo
 route.put(
   "/change-photo/:userId",
-  isAuthorize(["Admin", "User"]),
+  isAuthorize(["admin", "user"]),
   upload.single("ImgUrl"),
   asyncWrapper(userController.ChangePhoto)
 );
 // Change User Password
 route.put(
   "/change-password/:userId",
-  isAuthorize(["Admin", "User"]),
+  isAuthorize(["admin", "user"]),
   asyncWrapper(userController.ChangePassword)
+);
+// Log a Reading Session
+route.post(
+  "/log-reading",
+  isAuthorize(["user", "admin"]),
+  asyncWrapper(userController.logReading)
+);
+// Get Daily Reading Statistics
+route.get(
+  "/daily-reading-stats",
+  isAuthorize(["user", "admin"]),
+  asyncWrapper(userController.getDailyReadingStats)
+);
+// Get Annual Reading Statistics
+route.get(
+  "/annual-reading-stats",
+  isAuthorize(["user", "admin"]),
+  asyncWrapper(userController.getAnnualReadingStats)
 );
 
 module.exports = route;
