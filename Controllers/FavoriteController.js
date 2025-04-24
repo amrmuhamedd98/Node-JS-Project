@@ -1,16 +1,15 @@
 const Favorite = require('../Models/Favorite');
 const Book = require('../Models/Book');
+const ApiError = require("../Utils/ApiError");
 
-async function addFavorite  (req, res, next) {
+async function addFavorite(req, res, next) {
   try {
     const { bookId } = req.body;
 
     const book = await Book.findById(bookId);
     if (!book) {
-      return res.status(404).json({ 
-        success: false,
-        error: `Book not found with id of ${bookId}`
-      });
+      const error = new ApiError(`Book not found with id of ${bookId}`, 404);
+      return next(error);
     }
 
     let favorite = await Favorite.findOne({
@@ -31,14 +30,12 @@ async function addFavorite  (req, res, next) {
 
     res.status(201).json({ success: true, data: favorite });
   } catch (err) {
-    res.status(500).json({ 
-      success: false,
-      error: 'Server error' 
-    });
+    const error = new ApiError("Server error", 500);
+    return next(error);
   }
-};
+}
 
-async function getFavorites (req, res) {
+async function getFavorites(req, res, next) {
   try {
     const favorites = await Favorite.find({ user: req.user.id })
       .populate({
@@ -52,43 +49,35 @@ async function getFavorites (req, res) {
       data: favorites 
     });
   } catch (err) {
-    res.status(500).json({ 
-      success: false,
-      error: 'Server error' 
-    });
+    const error = new ApiError("Server error", 500);
+    return next(error);
   }
-};
+}
 
-async function removeFavorite  (req, res) {
+async function removeFavorite(req, res, next) {
   try {
     const favorite = await Favorite.findById(req.params.id);
 
     if (!favorite) {
-      return res.status(404).json({ 
-        success: false,
-        error: `Favorite not found with id of ${req.params.id}`
-      });
+      const error = new ApiError(`Favorite not found with id of ${req.params.id}`, 404);
+      return next(error);
     }
 
     if (favorite.user.toString() !== req.user.id) {
-      return res.status(401).json({ 
-        success: false,
-        error: 'Not authorized to remove this favorite'
-      });
+      const error = new ApiError("Not authorized to remove this favorite", 401);
+      return next(error);
     }
 
     await favorite.remove();
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ 
-      success: false,
-      error: 'Server error' 
-    });
+    const error = new ApiError("Server error", 500);
+    return next(error);
   }
-};
+}
 
 module.exports = {
-    addFavorite,
-    getFavorites,
-    removeFavorite
-    };
+  addFavorite,
+  getFavorites,
+  removeFavorite
+};

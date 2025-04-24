@@ -1,7 +1,9 @@
 const user = require("../Models/User");
+const ReadingLog = require("../Models/ReadingLog");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const ApiError = require("../Utils/ApiError");
+const mongoose = require("mongoose");
 require("dotenv").config();
 const tokenKey = process.env.tokenKey;
 
@@ -233,6 +235,144 @@ async function ChangePassword(req, res, next) {
   }
 }
 
+// Log a reading session
+async function logReading(req, res, next) {
+  const { book, pagesRead, duration } = req.body;
+  if (!book) {
+    const error = new ApiError("Book ID is required", 400);
+    return next(error);
+  }
+  if (pagesRead && (typeof pagesRead !== "number" || pagesRead < 0)) {
+    const error = new ApiError("Pages read must be a positive number", 400);
+    return next(error);
+  }
+  if (duration && (typeof duration !== "number" || duration < 0)) {
+    const error = new ApiError("Duration must be a positive number", 400);
+    return next(error);
+  }
+  try {
+    const readingLog = await ReadingLog.create({
+      user: req.user.id,
+      book,
+      pagesRead: pagesRead || 0,
+      duration: duration || 0,
+    });
+    return res.status(201).json({
+      Message: "Reading session logged successfully",
+      Data: readingLog,
+    });
+  } catch (err) {
+    console.error("Error logging reading session:", err);
+    const error = new ApiError("Failed to log reading session", 400);
+    return next(error);
+  }
+}
+
+// Calculate daily reading statistics
+async function getDailyReadingStats(req, res, next) {
+  try {
+    const userId = req.user.Role === "admin" && req.query.userId ? req.query.userId : req.user.id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const dailyStats = await ReadingLog.aggregate([
+      {
+        $match: {
+          user: mongoose.Types.ObjectId(userId),
+          date: { $gte: today, $lt: tomorrow },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSessions: { $sum: 1 },
+          totalPages: { $sum: "$pagesRead" },
+          totalDuration: { $sum: "$duration" },
+          booksRead: { $addToSet: "$book" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalSessions: 1,
+          totalPages: 1,
+          totalDuration: 1,
+          totalBooks: { $size: "$booksRead" },
+        },
+      },
+    ]);
+
+    const stats = dailyStats[0] || {
+      totalSessions: 0,
+      totalPages: 0,
+      totalDuration: 0,
+      totalBooks: 0,
+    };
+    return res.status(200).json({
+      Message: "Daily reading stats retrieved successfully",
+      Data: stats,
+    });
+  } catch (err) {
+    console.error("Error calculating daily reading stats:", err);
+    const error = new ApiError("Failed to calculate daily reading stats", 500);
+    return next(error);
+  }
+}
+
+// Calculate annual reading statistics
+async function getAnnualReadingStats(req, res, next) {
+  try {
+    const userId = req.user.Role === "admin" && req.query.userId ? req.query.userId : req.user.id;
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const startOfNextYear = new Date(currentYear + 1, 0, 1);
+
+    const annualStats = await ReadingLog.aggregate([
+      {
+        $match: {
+          user: mongoose.Types.ObjectId(userId),
+          date: { $gte: startOfYear, $lt: startOfNextYear },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSessions: { $sum: 1 },
+          totalPages: { $sum: "$pagesRead" },
+          totalDuration: { $sum: "$duration" },
+          booksRead: { $addToSet: "$book" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalSessions: 1,
+          totalPages: 1,
+          totalDuration: 1,
+          totalBooks: { $size: "$booksRead" },
+        },
+      },
+    ]);
+
+    const stats = annualStats[0] || {
+      totalSessions: 0,
+      totalPages: 0,
+      totalDuration: 0,
+      totalBooks: 0,
+    };
+    return res.status(200).json({
+      Message: "Annual reading stats retrieved successfully",
+      Data: stats,
+    });
+  } catch (err) {
+    console.error("Error calculating annual reading stats:", err);
+    const error = new ApiError("Failed to calculate annual reading stats", 500);
+    return next(error);
+  }
+}
+
 module.exports = {
   Register,
   Login,
@@ -244,4 +384,9 @@ module.exports = {
   SearchUsers,
   ChangePhoto,
   ChangePassword,
+  logReading,
+  getDailyReadingStats,
+  getAnnualReadingStats,
 };
+
+

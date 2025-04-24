@@ -1,6 +1,7 @@
 const Memorization = require("../Models/Memorization");
+const ApiError = require("../Utils/ApiError");
 
-async function createMemorization(req, res) {
+async function createMemorization(req, res, next) {
   try {
     const memorization = await Memorization.create({
       ...req.body,
@@ -8,13 +9,12 @@ async function createMemorization(req, res) {
     });
     res.status(201).json({ success: true, data: memorization });
   } catch (err) {
-    res
-      .status(400)
-      .json({ success: false, error: "Invalid memorization data" });
+    const error = new ApiError("Invalid memorization data", 400);
+    return next(error);
   }
 }
 
-async function getMemorizations(req, res) {
+async function getMemorizations(req, res, next) {
   try {
     const memorizations = await Memorization.find({
       user: req.user.id,
@@ -23,11 +23,12 @@ async function getMemorizations(req, res) {
 
     res.status(200).json({ success: true, data: memorizations });
   } catch (err) {
-    res.status(500).json({ success: false, error: "Server error" });
+    const error = new ApiError("Server error", 500);
+    return next(error);
   }
 }
 
-async function updateMemorization(req, res) {
+async function updateMemorization(req, res, next) {
   try {
     const memorization = await Memorization.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
@@ -36,18 +37,18 @@ async function updateMemorization(req, res) {
     );
 
     if (!memorization) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Memorization not found" });
+      const error = new ApiError("Memorization not found", 404);
+      return next(error);
     }
 
     res.status(200).json({ success: true, data: memorization });
   } catch (err) {
-    res.status(400).json({ success: false, error: "Update failed" });
+    const error = new ApiError("Update failed", 400);
+    return next(error);
   }
 }
 
-async function deleteMemorization(req, res) {
+async function deleteMemorization(req, res, next) {
   try {
     const memorization = await Memorization.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
@@ -56,14 +57,14 @@ async function deleteMemorization(req, res) {
     );
 
     if (!memorization) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Memorization not found" });
+      const error = new ApiError("Memorization not found", 404);
+      return next(error);
     }
 
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ success: false, error: "Server error" });
+    const error = new ApiError("Server error", 500);
+    return next(error);
   }
 }
 
