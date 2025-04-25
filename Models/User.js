@@ -30,7 +30,7 @@ const userSchema = mongoose.Schema(
     },
     ImgUrl: {
       type: String,
-      required: false,
+      default: "../Uploads/avatar.png",
     },
     Role: {
       type: String,
