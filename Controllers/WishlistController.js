@@ -70,7 +70,7 @@ async function GetWishlistByUser(req, res, next) {
   if (userWishlist && userWishlist.length > 0) {
     return res.status(200).json({
       Message: "Wishlist retrieved successfully",
-      Data: wishlist,
+      Data: userWishlist,
     });
   } else {
     const error = new ApiError("Wishlist is empty or not found", 404);
