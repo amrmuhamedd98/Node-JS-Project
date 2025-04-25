@@ -1,5 +1,6 @@
 const book = require("../Models/Book");
 const ApiError = require("../Utils/ApiError");
+const fs = require("fs");
 
 // Add Book
 async function AddBook(req, res, next) {
@@ -11,10 +12,14 @@ async function AddBook(req, res, next) {
     TotalPages,
     Description,
     Rate,
-    ImageURL,
     Status,
     UserId,
   } = req.body;
+  const ImageURL = req.file ? req.file.path : null;
+  if (!ImageURL) {
+    const error = new ApiError("Book image is required", 400);
+    return next(error);
+  }
   let bookAdded = await book.create({
     Title,
     Author,
